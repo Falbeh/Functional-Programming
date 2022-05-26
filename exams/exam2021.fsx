@@ -12,7 +12,7 @@ let rope1 = Node(Node(Leaf("I_lik",5),5,Leaf("e_functional_pr",15)),
 
 let rope2 = Node(Leaf("_and",4),4,Node(Leaf("_very",6),6,Leaf("much_F#",7)))
 
-// The type Rope is monomorphic as its types are defined. 
+// Answer: Rope is monomorphic, as a parent node is always represented as an int, and leaves are always represented as a tuple (string, int)
 
 let rope3 = Node(Node(Leaf("example_",8),8,Leaf("with_",5)),13,Leaf("5_nodes",7))
 
@@ -24,7 +24,7 @@ let length r =
     | Node(x,_,y) -> length' x acc + length' y acc
   length' r 0
 
-length rope1
+length rope1 // 29
 
 let flatten r = 
   let rec flatten' r acc =
@@ -33,26 +33,31 @@ let flatten r =
     | Node(x,_,y) -> flatten' x acc + flatten' y acc
   flatten' r ""
 
-flatten rope1
+flatten rope1 // "I_like_functional_programming"
 
 let maxDepth r = 
   let rec maxDepth' r acc = 
+    // I traverse the left subtree and then the right subtree and the depth is returned when I reach a leaf
     match r with
     | Leaf(_) -> acc
     | Node(x,_,y) -> maxDepth' x acc + maxDepth' y acc+1
   maxDepth' r 0
 
-maxDepth rope1
+maxDepth rope1 // 3 
 
 let index i r = 
   let s = flatten r // get string
   let c = s.ToCharArray() // explode string into chararray
   let c = c |> List.ofArray // turn array into list
   c |> List.item i
-  
+  // s.[i] can also be called instead of exploding string to charArray
+
 index 5 rope1 // 'e'
-index 4 rope3 // 'p'
-index 10 rope2 // 'u'
+// test cases
+index 28 rope1 // 'g'
+index 0 rope1 // 'I'
+index 100 rope1 // index out of range
+index 2 rope2 // 'n'
 
 // ** Question 1.3
 
@@ -68,7 +73,8 @@ let rec prettyPrint r =
                                         prettyPrint rightNode
                                         printfn ")"
                                                                  
-prettyPrint rope1 // I am aware that this is not exactly as the example, but this is what I had time for.
+prettyPrint rope1 // I am aware that this is not exactly as the example, but this is what I had time for. 
+// Next step would be to count where in the process the pattern-match is so the first "Node(" for example would have no indentation
 
 // Question 2
 
@@ -88,9 +94,10 @@ let ulist01 = [ { sizeBucket = 4; elems = ['A';'B';'C';'D'] };
                 { sizeBucket = 4; elems = ['S'; 'T'; 'U'; 'V'] };
                 { sizeBucket = 4; elems = ['W'; 'X'; 'Y'; 'Z'] } ]
 
-// The type of ulist01 is Bucket<char> list because it makes a list of the Bucket<'a> type where the polymorphic type 'a  the elements in the list
+// The type of ulist01 is Bucket<char> list because it makes a list of the Bucket<'a> type where the polymorphic type 'a in elements in the list
 // which in this case are defined as chars. 
-
+// The generic type 'a in the type Bucket<'a> is determined by what type of element we put into the list (= List<'a>)
+// Further, it is a Bucket<char> list, because we have a list of buckets
 let ulist02 = [ { sizeBucket = 5; elems = ['A';'B';'C';'D'; 'E'] };
                 { sizeBucket = 1; elems = ['F'] };
                 { sizeBucket = 7; elems = ['G';'H'; 'I'; 'J'; 'K'; 'L';'M'] };
@@ -126,19 +133,25 @@ let rec existsUL e ul =
 
 existsUL 'A' (emptyUL()) // false
 existsUL 'A' ulist01 // true
+existsUL '!' ulist02 // false
 
 let itemUL ul i = 
   let rec itemUL' ul i acc =
     match ul with 
-    | [] -> acc |> List.item i
-    | {sizeBucket = _; elems = y}::xss -> itemUL' xss i (y@acc)
+    | [] -> acc |> List.item i // Find item at index i in accummulated list
+    | {sizeBucket = _; elems = y}::xss -> itemUL' xss i (y@acc) // adding all lists together into an accummulated list
   itemUL' ul i []
   
 itemUL ulist01 5 // 'T'
 
 let filterUL p ul =  // Skipped the rest of question 2 because of lack of time
-  match ul with 
-  | 
+  let rec filterUL' p ul acc = 
+    match ul with 
+    | [] -> let tmp = acc |> List.filter (fun {sizeBucket = x; elems = y} -> x>0) // Removing empty sizeBuckets
+            tmp |> List.rev // Reversing list 
+    | {sizeBucket = _; elems = y}::xss -> let filter = y |> List.filter p
+                                          filterUL' p xss ({sizeBucket = filter.Length; elems = filter}::acc)
+  filterUL' p ul (emptyUL())
 
 filterUL(fun e -> e < 'I') ulist01 
 
@@ -148,10 +161,22 @@ let ulist03Wrong = [ { sizeBucket = 2; elems = [1] };
 
 
 // ** Question 2.3 
+// Helper method to check for empty buckets and that all bucket sizes are smaller than 5
+let rec noEmptyBucket ul = 
+    match ul with 
+    | [] -> true
+    | {sizeBucket = x; elems = y}::xss -> if x = 0 || x>4 then false else noEmptyBucket xss
 
-chkUL ulist03Wrong
+// Helper method to check if bucket sizes are correct
+let rec correctBucketSize ul = 
+  match ul with 
+  | [] -> true
+  | {sizeBucket = x; elems = y}::xss -> if x = y.Length then noEmptyBucket xss else false
 
-chkUL ulist01
+let chkUL ul = if noEmptyBucket ul && correctBucketSize ul then true else false
+
+chkUL ulist03Wrong // false 
+chkUL ulist01 // false
 
 map (int) ulist01
 
