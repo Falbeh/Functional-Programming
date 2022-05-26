@@ -19,7 +19,7 @@ let emptyMap () = MyMap []
 let size m = 
    match m with 
    | MyMap [] -> 0
-   | MyMap m -> List.length m
+   | MyMap m -> List.length m 
 size ex1 
 size (emptyMap())
 
@@ -58,6 +58,7 @@ let add k v m =
         | Some (i) -> MyMap(m |> List.updateAt i (k,v))
 
 add 'D' 68 ex1
+add 'A' 222 ex1
 
 // 
 let upd f k v m =
@@ -92,7 +93,7 @@ even 42
 //
 let collatz n = 
     match n with 
-    | n when even n = true -> n/2
+    | n when even n -> n/2
     | _  -> (3*n)+1
 
 collatz 64 // 32
