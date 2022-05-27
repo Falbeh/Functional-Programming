@@ -178,10 +178,24 @@ let chkUL ul = if noEmptyBucket ul && correctBucketSize ul then true else false
 chkUL ulist03Wrong // false 
 chkUL ulist01 // false
 
+let map f ul = 
+  let rec map' f ul newUL =
+    match ul with 
+    // Traverse through each list in each Bucket<'a> and apply function f to the elements of the lists. Then add them to new Bucket<'a> list.
+    | [] -> newUL |> List.rev // reversing list in base step
+    | {sizeBucket = x; elems = y}::xss -> map' f xss ({sizeBucket = x; elems = y |> List.map (fun x -> f x)}::newUL) 
+  map' f ul (emptyUL())                                                     
+  
 map (int) ulist01
 
-fold (fun a c -> a+((string)c)) "" ulist01
+let fold f a ul =
+  let rec fold' f ul acc = 
+    match ul with 
+      | [] -> acc 
+      | {sizeBucket = x; elems = y}::xss -> fold' f xss (y |> List.fold (fun acc elm -> f acc elm) acc) // Folding over lists in buckets and applying function f to each elm
+  fold' f ul a
 
+fold (fun a c -> a+((string)c)) "" ulist01
 
 // Question 3
 
@@ -291,9 +305,11 @@ let resolveInsts insts env =
     [] -> Map.empty
   | LABEL lab :: insts -> resolve idx insts
   | ADD :: insts -> Map.add idx RADD (resolve (idx+1) insts)
-  | IFNZGOTO lab :: insts -> Map.add idx (RIFNZGOTO (lookup ...)) (resolve ...)
-  | ...
+  | IFNZGOTO lab :: insts -> Map.add idx (RIFNZGOTO (lookup lab env)) (resolve (idx+1) insts)
+  | SUB :: insts -> Map.add idx RSUB (resolve (idx+1) insts)
+  | PUSH(x) :: insts -> Map.add idx (RPUSH x) (resolve (idx+1) insts)
+  | EXIT :: insts -> Map.add idx REXIT (resolve (idx+1) insts)
   resolve 0 insts
 
-resolveInsts insts02 (buildEnv insts02)
+resolveInsts insts02 (buildEnv insts02) // map [(0, RPUSH 10); (1, RPUSH 1); (2, RSUB); (3, RIFNZGOTO 1); (4, REXIT)]
 
