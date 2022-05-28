@@ -131,8 +131,10 @@ let rec existsUL e ul =
         | Some(e) -> true 
   | _ -> false
 
+// Could also use List.exists
+
 existsUL 'A' (emptyUL()) // false
-existsUL 'A' ulist01 // true
+existsUL 'B' ulist01 // true
 existsUL '!' ulist02 // false
 
 let itemUL ul i = 
