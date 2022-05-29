@@ -265,4 +265,6 @@ evalCell (2,'H') dice // 4.0
 
 let ppBoard (sheet: Sheet) = sheet |> Map.fold (fun (acc:string) (x:int,y:char) z -> printfn "%s %c" acc y) ""
     
-
+// test
+let sq = seq {1..10..100}
+sq
